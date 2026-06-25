@@ -1,22 +1,12 @@
-# Dependencies
 node_modules/
-
-# Environment variables - NEVER commit these
 .env
 .env.local
-
-# Database
-*.db
-*.sqlite
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Build output
+!.env.example
 dist/
 build/
-
-# Logs
+coverage/
+*.db
+*.sqlite
 *.log
-npm-debug.log*
+.DS_Store
+Thumbs.db
