@@ -18,61 +18,33 @@ backend/   Express API, Prisma schema, migrations, seed, tests
 frontend/  React/Vite operator application
 docs/      Architecture, API, database, and Postman collection
 ```
-
-## Requirements
-
-- Node.js 20+
-- PostgreSQL 15+
-
-## Setup
-
-1. Create a PostgreSQL database named `manufacturing_tracker`.
-2. Copy `backend/.env.example` to `backend/.env` and set `DATABASE_URL` and a strong `JWT_SECRET`.
-3. Copy `frontend/.env.example` to `frontend/.env` if the API is not at the default URL.
-4. Install and initialize the backend:
-
-```bash
-cd backend
-npm install
-npx prisma generate
-npx prisma migrate deploy
-npm run seed
-npm run dev
-```
-
-5. In a second terminal, start the frontend:
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Open `http://localhost:5173`. Seed credentials are `operator@example.com` / `operator123`; change them outside local development. Seed machine QR code: `MACHINE-001`.
-
-## Environment variables
-
-| Variable | Location | Purpose |
-|---|---|---|
-| `DATABASE_URL` | backend | PostgreSQL Prisma connection string |
-| `JWT_SECRET` | backend | JWT signing secret |
-| `JWT_EXPIRES_IN` | backend | Token lifetime; default `8h` |
-| `PORT` | backend | API port; default `4000` |
-| `FRONTEND_URL` | backend | Allowed CORS origin |
-| `VITE_API_URL` | frontend | API base URL |
-
-## Commands
-
-Backend: `npm run dev`, `npm start`, `npm test`, `npm run prisma:migrate`, `npm run prisma:deploy`, `npm run seed`.
-
-Frontend: `npm run dev`, `npm run build`, `npm run preview`.
-
-## Screenshots
-
-Add deployment-specific captures here after starting the application:
-
-- `[Screenshot: operator login]`
-- `[Screenshot: live assembly scanner]`
-- `[Screenshot: dashboard and printable report]`
-
-Detailed references: [Architecture](docs/ARCHITECTURE.md), [API endpoints](docs/API_ENDPOINTS.md), [Database schema](docs/DATABASE_SCHEMA.md), and [Postman collection](docs/Manufacturing-Tracker.postman_collection.json).
+ FLOW:
+1. Operator opens app
+        ↓
+2. Not logged in → login screen
+   POST /api/auth/login
+   Gets back a token, stores it
+        ↓
+3. Assembly screen appears
+   Operator scans machine QR
+   POST /api/sessions { machine_id }
+   Backend creates session → returns session_id
+        ↓
+4. Screen shows machine name + empty parts list
+   Operator scans part barcode
+   POST /api/sessions/:id/parts { barcode }
+   Backend runs 6 validations
+   Success → 3 database writes happen together
+   Failure → scan_event logged with reason, error shown on screen
+        ↓
+5. Operator keeps scanning parts
+   Each scan → same flow above
+   Parts list on screen grows with each success
+        ↓
+6. Operator taps Finalize
+   PATCH /api/sessions/:id/finalize
+   Session status → 'closed'
+   Machine status → 'assembled'
+   No more parts can be added
+        ↓
+7. Summary screen shows all parts in this machineTracker.postman_collection.json).
