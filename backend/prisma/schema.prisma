@@ -1,0 +1,91 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model machines {
+  id String @id @default(uuid())
+  qr_code String @unique
+  name String
+  type String
+  status String @default("pending")
+  created_at DateTime @default(now())
+
+  assembly_sessions assembly_sessions[]
+}
+
+model parts{
+  id String @id @default(uuid())
+  raw_barcode String @unique
+  supplier_code String 
+  part_code String
+  date_raw String
+  serial_no String
+  status String @default("available")
+  created_at DateTime @default(now())
+
+  assembly_part_links assembly_part_links[]
+  
+}
+
+model operators{
+  id String @id @default(uuid())
+  name String 
+  email String @unique
+  password_hash String
+  created_at DateTime @default(now())
+
+  assembly_sessions assembly_sessions[]
+  scan_events scan_events[]
+}
+
+model assembly_sessions{
+  id String @id @default(uuid())
+  machine_id String
+  operator_id String
+  status String @default("open")
+  started_at DateTime @default(now())
+  finished_at DateTime?
+
+  machine  machines  @relation(fields: [machine_id], references: [id])
+  operator operators @relation(fields: [operator_id], references: [id])
+
+  assembly_part_links assembly_part_links[]
+  scan_events scan_events[]
+  }
+
+  model assembly_part_links{
+    id String @id @default(uuid())
+    session_id String
+    machine_id String
+    part_id String
+    linked_at DateTime @default(now())
+
+    session assembly_sessions @relation(fields: [session_id], references: [id])
+    part parts @relation(fields: [part_id], references: [id])
+
+    @@unique([session_id, part_id])
+
+  }
+
+  model scan_events {
+  id               String   @id @default(uuid())
+  session_id       String
+  operator_id      String
+  scanned_qr_code  String
+  result           String
+  failure_reason   String?
+  scanned_at       DateTime @default(now())
+
+  session  assembly_sessions @relation(fields: [session_id], references: [id])
+  operator operators         @relation(fields: [operator_id], references: [id])
+}

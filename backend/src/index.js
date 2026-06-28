@@ -1,13 +1,31 @@
-const express = require('express')
+//console.log("1");
+require('dotenv').config();
 
-const app = express()
+//console.log("2");
+const express = require('express');
 
-const machineRoutes = require('./routes/machines')
-const scanRoutes = require('./routes/scan')
+//console.log("3");
+const app = express();
+
+//console.log("4");
+const machineRoutes = require('./routes/machines');
+
+//console.log("5");
+const scanRoutes = require('./routes/scan');
+
+// console.log("6");
 
 app.use(express.json())
 
-const PORT = 3000
+// app.use((req, res, next) => {
+//     console.log("Incoming:", req.method, req.url);
+//     next();
+// });
+
+const PORT = 3456
+// app.get('/', (req, res) => {
+//     res.send("THIS IS MY SERVER");
+// });
 
 app.get('/health', (req,res)=>
 {
@@ -18,8 +36,8 @@ app.get('/health', (req,res)=>
     })
 })
 
-app.use('/api/machines', machineRoutes)
-app.use('/api/scan', scanRoutes)
+ app.use('/api/machines', machineRoutes)
+ app.use('/api/scan', scanRoutes)
 
 app.listen(PORT,()=>{
     console.log(`Server running on http://localhost:${PORT}`)
